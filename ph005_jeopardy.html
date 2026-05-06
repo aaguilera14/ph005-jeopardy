@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PH 005 Final Exam Jeopardy</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #103264;
+    --gold: #C99700;
+    --gold-light: #f5e6a3;
+    --bg: #f4f4f2;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #555;
+    --border: rgba(0,0,0,0.12);
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .setup-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .setup-btn:hover { background: #eee; }
+
+  .setup-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .setup-panel label { font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px; }
+  .teams-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .setup-panel input {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 160px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .done-btn {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 8px 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .done-btn:hover { background: #1a4a8a; }
+
+  .scores-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    text-align: center;
+    min-width: 110px;
+  }
+  .score-name { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+  .score-val { font-size: 22px; font-weight: 600; color: var(--navy); }
+  .score-adj { display: flex; justify-content: center; gap: 10px; margin-top: 4px; }
+  .score-adj button {
+    background: none; border: 1px solid var(--border);
+    border-radius: 50%; width: 24px; height: 24px;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .score-adj button:hover { background: #eee; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+  .cat-header {
+    background: var(--navy);
+    color: #fff;
+    text-align: center;
+    padding: 10px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+  .cell {
+    background: var(--navy);
+    color: var(--gold);
+    text-align: center;
+    padding: 10px 4px;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    user-select: none;
+  }
+  .cell:hover { background: #1a4a8a; transform: scale(1.02); }
+  .cell:active { transform: scale(0.98); }
+  .cell.used {
+    background: #2c3a4a;
+    color: #2c3a4a;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Question overlay */
+  #question-view { display: none; }
+  #question-view.active { display: block; }
+  #board-view { display: block; }
+  #board-view.hidden { display: none; }
+
+  .q-card {
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: #fff;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .q-cat {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 8px;
+  }
+  .q-pts { font-size: 32px; font-weight: 700; margin-bottom: 20px; }
+  .q-text { font-size: 20px; line-height: 1.5; max-width: 600px; }
+
+  .answer-panel {
+    background: var(--gold-light);
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 2rem;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .answer-panel.visible { display: block; }
+
+  .award-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .award-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 120px;
+  }
+  .award-card .score-name { font-size: 12px; color: var(--text-muted); }
+  .award-card .score-val { font-size: 18px; font-weight: 600; color: var(--navy); margin: 2px 0; }
+  .award-btns { display: flex; gap: 8px; justify-content: center; }
+  .award-btns button {
+    border: none;
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .award-btns button:active { transform: scale(0.96); }
+  .btn-correct { background: #2d7a3a; color: #fff; }
+  .btn-wrong { background: #c0392b; color: #fff; }
+
+  .btn-reveal {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    transition: background 0.15s;
+  }
+  .btn-reveal:hover { background: #b8860b; }
+
+  .btn-back {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 24px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: block;
+    margin: 0 auto;
+  }
+  .btn-back:hover { background: #eee; }
+
+  .all-done {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 600px) {
+    .board { grid-template-columns: repeat(6, 1fr); gap: 3px; }
+    .cat-header { font-size: 9px; padding: 6px 2px; min-height: 48px; }
+    .cell { font-size: 15px; min-height: 48px; }
+    .q-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>PH 005 &mdash; Final Exam Jeopardy</h1>
+<p class="subtitle">UC Merced &bull; Introduction to Public Health &bull; Spring 2026</p>
+
+<div id="board-view">
+  <div class="title-row">
+    <span style="font-size:15px;color:var(--text-muted);">Select a category and point value to begin.</span>
+    <button class="setup-btn" onclick="toggleSetup()"><i class="ti ti-settings"></i> Edit Teams</button>
+  </div>
+
+  <div id="setup-panel" class="setup-panel" style="display:none;">
+    <label>Team names:</label>
+    <div class="teams-row" id="team-inputs"></div>
+    <button class="done-btn" onclick="toggleSetup()">Done</button>
+  </div>
+
+  <div class="scores-row" id="score-cards"></div>
+  <div class="board" id="board"></div>
+  <div class="all-done" id="all-done" style="display:none;">🎉 All questions answered! Great review session.</div>
+</div>
+
+<div id="question-view">
+  <div class="q-card">
+    <div class="q-cat" id="q-cat"></div>
+    <div class="q-pts" id="q-pts"></div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+
+  <div style="text-align:center;" id="reveal-area">
+    <button class="btn-reveal" onclick="revealAnswer()">Reveal Answer</button>
+  </div>
+
+  <div class="answer-panel" id="answer-panel"></div>
+
+  <div class="award-row" id="award-row" style="display:none;"></div>
+
+  <button class="btn-back" onclick="backToBoard()">&#8592; Back to board</button>
+</div>
+
+<footer>PH 005 &bull; Dr. Aguilera &bull; UC Merced</footer>
+
+<script>
+const DATA = {
+  categories: [
+    "Foundations",
+    "Disease Burden",
+    "Comm. Diseases",
+    "NCDs & Injuries",
+    "Women & Children",
+    "Interventions"
+  ],
+  questions: [
+    [
+      { q: "This term describes the combined effect of social, economic, and environmental conditions on health outcomes.", a: "Social determinants of health (SDH)", pts: 100 },
+      { q: "The WHO defines this as 'a state of complete physical, mental, and social well-being' — not merely the absence of disease.", a: "Health", pts: 200 },
+      { q: "This index, reported annually by the UNDP, combines life expectancy, education, and income into a single country-level score.", a: "Human Development Index (HDI)", pts: 300 },
+      { q: "Low- and middle-income countries bear the greatest share of this metric, which measures all deaths and disability from a disease combined.", a: "Global burden of disease (GBD)", pts: 400 },
+      { q: "This ethical principle holds that researchers and health workers should prioritize the welfare of communities above all else — one of the four core bioethical principles.", a: "Beneficence (or non-maleficence)", pts: 500 },
+    ],
+    [
+      { q: "One DALY represents this: one year of healthy life lost due to illness, disability, or early death.", a: "One year of healthy life lost (disability-adjusted life year)", pts: 100 },
+      { q: "This measure captures deaths that occur before an expected age — calculated as the sum of years of life lost across all premature deaths.", a: "Years of Life Lost (YLL)", pts: 200 },
+      { q: "In epidemiology, this figure tells you how many existing cases of a disease are present in a population at a given point in time.", a: "Prevalence", pts: 300 },
+      { q: "Sub-Saharan Africa and South Asia carry the highest burden of this broad category, which includes HIV, TB, malaria, and diarrheal diseases.", a: "Communicable (infectious) diseases", pts: 400 },
+      { q: "The GBD study is produced by this US-based research institution, which uses data from countries worldwide to estimate death and disability.", a: "Institute for Health Metrics and Evaluation (IHME)", pts: 500 },
+    ],
+    [
+      { q: "TB is caused by this type of pathogen and spreads primarily through this route.", a: "Mycobacterium tuberculosis; airborne/droplet transmission", pts: 100 },
+      { q: "This first-line malaria treatment, derived from artemisinin, is recommended by WHO for its rapid action and reduced resistance.", a: "Artemisinin-based combination therapy (ACT)", pts: 200 },
+      { q: "HIV damages the immune system by destroying these cells, making the body vulnerable to opportunistic infections.", a: "CD4+ T cells (T-helper cells)", pts: 300 },
+      { q: "Oral rehydration therapy dramatically reduces mortality from this communicable disease, which kills hundreds of thousands of children annually.", a: "Diarrheal disease", pts: 400 },
+      { q: "This concept describes the level of immunity a population needs to prevent sustained disease transmission — it varies by pathogen's basic reproduction number.", a: "Herd immunity threshold", pts: 500 },
+    ],
+    [
+      { q: "These four behavioral risk factors account for the majority of NCD deaths globally: tobacco, physical inactivity, harmful alcohol use, and this fourth one.", a: "Unhealthy diet (poor nutrition)", pts: 100 },
+      { q: "Road traffic injuries are classified in this broad category of global injuries — alongside falls, burns, and drowning.", a: "Unintentional injuries", pts: 200 },
+      { q: "Sometimes called the 'silent killer,' this is the leading NCD risk factor for heart disease and stroke worldwide.", a: "Hypertension (high blood pressure)", pts: 300 },
+      { q: "Mental health disorders account for a large share of global disability. This most common mental disorder contributes heavily to years lived with disability worldwide.", a: "Depression (major depressive disorder)", pts: 400 },
+      { q: "The Haddon Matrix examines this, host, and environment factors across pre-event, event, and post-event phases in injury prevention.", a: "Agent (or vehicle/vector)", pts: 500 },
+    ],
+    [
+      { q: "This global measure captures deaths related to pregnancy or childbirth — expressed per 100,000 live births.", a: "Maternal mortality ratio (MMR)", pts: 100 },
+      { q: "The majority of under-5 child deaths are concentrated in these two regions of the world.", a: "Sub-Saharan Africa and South Asia", pts: 200 },
+      { q: "Stunting in children is caused primarily by chronic deficiency of this, leading to irreversible impairment of physical and cognitive growth.", a: "Nutrition (undernutrition / protein-energy malnutrition)", pts: 300 },
+      { q: "This term describes the period from conception to a child's second birthday — considered the most critical window for nutritional interventions.", a: "The first 1,000 days", pts: 400 },
+      { q: "Female genital mutilation, child marriage, and intimate partner violence are classified under this broad umbrella concept in global health.", a: "Gender-based violence (GBV)", pts: 500 },
+    ],
+    [
+      { q: "This framework, adopted at the 2000 UN Millennium Summit and succeeded by the SDGs, set global health and development targets for 2015.", a: "Millennium Development Goals (MDGs)", pts: 100 },
+      { q: "This type of health worker, trained at the community level with limited clinical credentials, is a cornerstone of primary care scale-up in LMICs.", a: "Community health worker (CHW)", pts: 200 },
+      { q: "PEPFAR, the US President's Emergency Plan for AIDS Relief, is an example of this type of funding — from one government directly to another.", a: "Bilateral aid", pts: 300 },
+      { q: "The Alma-Ata Declaration of 1978 established this as the foundation of all global health systems, emphasizing equity and community participation.", a: "Primary health care (PHC)", pts: 400 },
+      { q: "This concept refers to a country's ability to finance its own health system without sustained external donor support — the ultimate goal of aid investment.", a: "Sustainability (health financing sustainability)", pts: 500 },
+    ],
+  ]
+};
+
+let teams = ['Team 1', 'Team 2', 'Team 3'];
+let scores = [0, 0, 0];
+let used = Array.from({length: 6}, () => Array(5).fill(false));
+let activeQ = null;
+let revealed = false;
+
+function toggleSetup() {
+  const panel = document.getElementById('setup-panel');
+  const open = panel.style.display === 'none';
+  if (open) {
+    const container = document.getElementById('team-inputs');
+    container.innerHTML = teams.map((t, i) =>
+      `<input type="text" value="${t}" oninput="teams[${i}]=this.value||'Team ${i+1}'; refreshScores();" />`
+    ).join('');
+  }
+  panel.style.display = open ? 'block' : 'none';
+}
+
+function refreshScores() {
+  const container = document.getElementById('score-cards');
+  container.innerHTML = teams.map((t, i) => `
+    <div class="score-card">
+      <div class="score-name">${t}</div>
+      <div class="score-val" id="sv-${i}">$${scores[i].toLocaleString()}</div>
+      <div class="score-adj">
+        <button onclick="nudge(${i},1)" title="Add 100">+</button>
+        <button onclick="nudge(${i},-1)" title="Subtract 100">−</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function nudge(i, dir) {
+  scores[i] = Math.max(0, scores[i] + dir * 100);
+  refreshScores();
+}
+
+function buildBoard() {
+  const board = document.getElementById('board');
+  let html = DATA.categories.map(c => `<div class="cat-header">${c}</div>`).join('');
+  for (let ri = 0; ri < 5; ri++) {
+    for (let ci = 0; ci < 6; ci++) {
+      const pts = DATA.questions[ci][ri].pts;
+      const isUsed = used[ci][ri];
+      html += `<div class="cell${isUsed ? ' used' : ''}" onclick="openQ(${ci},${ri})">$${pts}</div>`;
+    }
+  }
+  board.innerHTML = html;
+  const allDone = used.every(col => col.every(Boolean));
+  document.getElementById('all-done').style.display = allDone ? 'block' : 'none';
+}
+
+function openQ(ci, ri) {
+  if (used[ci][ri]) return;
+  activeQ = {ci, ri};
+  revealed = false;
+  const q = DATA.questions[ci][ri];
+  document.getElementById('q-cat').textContent = DATA.categories[ci];
+  document.getElementById('q-pts').textContent = `$${q.pts}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('answer-panel').textContent = '';
+  document.getElementById('answer-panel').classList.remove('visible');
+  document.getElementById('reveal-area').style.display = 'block';
+  document.getElementById('award-row').style.display = 'none';
+  document.getElementById('board-view').classList.add('hidden');
+  document.getElementById('question-view').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function revealAnswer() {
+  const q = DATA.questions[activeQ.ci][activeQ.ri];
+  const panel = document.getElementById('answer-panel');
+  panel.textContent = q.a;
+  panel.classList.add('visible');
+  document.getElementById('reveal-area').style.display = 'none';
+  const awardRow = document.getElementById('award-row');
+  awardRow.style.display = 'flex';
+  awardRow.innerHTML = teams.map((t, i) => `
+    <div class="award-card">
+      <div class="score-name">${t}</div>
+      <div class="score-val" id="av-${i}">$${scores[i].toLocaleString()}</div>
+      <div class="award-btns">
+        <button class="btn-correct" onclick="awardTeam(${i}, 1)">✓ Correct</button>
+        <button class="btn-wrong" onclick="awardTeam(${i}, -1)">✗ Wrong</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function awardTeam(i, sign) {
+  const pts = DATA.questions[activeQ.ci][activeQ.ri].pts;
+  scores[i] = Math.max(0, scores[i] + sign * pts);
+  document.getElementById(`av-${i}`).textContent = `$${scores[i].toLocaleString()}`;
+  refreshScores();
+}
+
+function backToBoard() {
+  if (activeQ) used[activeQ.ci][activeQ.ri] = true;
+  activeQ = null;
+  document.getElementById('question-view').classList.remove('active');
+  document.getElementById('board-view').classList.remove('hidden');
+  buildBoard();
+  refreshScores();
+  window.scrollTo(0, 0);
+}
+
+refreshScores();
+buildBoard();
+</script>
+</body>
+</html>
